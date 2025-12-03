@@ -78,5 +78,114 @@ namespace RWayTrieProject
             // Mark the last node as end of a word
             current.IsEndOfWord = true;
         }
+
+        // Search: return true if FULL word exists
+        // Time: O(L)
+        public bool Search(string word)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+                return false;
+
+            word = word.Trim().ToLower();
+
+            var current = root;
+
+            foreach (char ch in word)
+            {
+                if (!IsValidChar(ch))
+                    return false;
+
+                int idx = CharToIndex(ch);
+
+                if (idx < 0 || idx >= RWayTrieNode.R)
+                    return false;
+
+                // Path does not exist -> found
+                if (current.Children[idx] == null)
+                    return false;
+
+                // Move down the path
+                current = current.Children[idx];
+            }
+
+            // Return true only if last node marks end of a word
+            return current.IsEndOfWord;
+        }
+
+        /*
+        Task 2 helper: Traverse down the trie following a string
+        Returns the node corresponding to the last character,
+        or null if the path doesn't exist
+        */
+
+        private RWayTrieNode TraverseToNode(string s)
+        {
+            var current = root;
+
+            if (string.IsNullOrEmpty(s))
+                return current; // empty prefix = root
+
+            s = s.Trim().ToLower();
+
+            foreach (char ch in s)
+            {
+                if (!IsValidChar(ch))
+                    return null;
+
+                int idx = CharToIndex(ch);
+
+                if (idx < 0 || idx >= RWayTrieNode.R)
+                    return null;
+
+                if (current.Children[idx] == null)
+                    return null;
+
+                current = current.Children[idx];
+            }
+            return current;
+        }
+
+        /* Task 2: PrefixMatch
+        Return all words in the trie that start with the given prefix.
+
+        Algorithm:
+        1. Traverse down to the node for the prefix
+        2. From that node, DFS through its subtree, building from words
+
+        Time analysis: O(P + K) where P = prefix length, K = total chars in all matches
+        */
+        public List<string> PrefixMatch(string prefix)
+        {
+            List<string> results = new List<string>();
+
+            if (PrefixMatch == null)
+                return results;
+
+            prefix = prefix.Trim().ToLower();
+
+            // Edge case: empty prefix -> return all words
+            // (Optional: you can also decide to treat empty as "no results")
+            RWayTrieNode startNode = TraverseToNode(prefix);
+
+            if (startNode == null)
+            {
+                // No such path in the trie -> no matches
+                return results;
+            }
+
+            var sb = new System.Text.StringBuilder(prefix);
+
+            // If the prefix itself is a complete word, include it
+            if (startNode.IsEndOfWord)
+            {
+                results.Add(prefix);
+            }
+
+            // DFS deeper to find longer words
+            DFSCollect(startNode, sb, results);
+
+            return results;
+        }
+
     }
 }
