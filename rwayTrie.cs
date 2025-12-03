@@ -158,7 +158,7 @@ namespace RWayTrieProject
         {
             List<string> results = new List<string>();
 
-            if (PrefixMatch == null)
+            if (string.IsNullOrWhiteSpace(prefix))
                 return results;
 
             prefix = prefix.Trim().ToLower();
@@ -187,5 +187,111 @@ namespace RWayTrieProject
             return results;
         }
 
+        /*
+        DFS helper for PrefixMatch
+
+        Node: Current Trie Node
+        sb: StringBuilder holding prefix + path so far
+        results: list where we store complete words
+        */
+        private void DFSCollect(RWayTrieNode node, System.Text.StringBuilder sb, List<string> results)
+        {
+            // For each possible child (a-z)
+            for (int i = 0; i < RWayTrieNode.R; i++)
+            {
+                var child = node.Children[i];
+                if (child == null)
+                    continue;
+
+                // Add this characther to the current string
+                char c = (char)('a' + i);
+                sb.Append(c);
+
+                // If child is end-of-word, record this word
+                if (child.IsEndOfWord)
+                {
+                    results.Add(sb.ToString());
+                }
+
+                // Recurse to explore deeper children
+                DFSCollect(child, sb, results);
+
+                // Backtrack: remove last character before trying the next child 
+                sb.Length--;
+            }
+        }
+
+        /*
+        Task 3: Build Trie from File
+        Reads a text file with one English word per line and inserts them
+        */
+
+        public void BuildFromFile(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException("Dictionary not found," filePath);
+            }
+
+            foreach (string line in File.ReadLines(filePath))
+            {
+                string word = line.Trim();
+
+                if (string.IsNullOrWhiteSpace(word))
+                    continue;
+
+                Insert(word);
+            }
+        }
+
+        // Delete + helpers from lab 3
+        public bool Delete(String word)
+        {
+            if (string.IsNullOrWhiteSpace)
+                return false;
+
+            return DeleteHelper(root, word.ToLower(), 0);
+        }
+
+        private bool DeleteHelper(RWayTrie node, string word, int depth)
+        {
+            if (node == null)
+                return false;
+
+            // reached end of the word
+            if (depth == word.Length)
+            {
+                if (!node.IsEndOfWord)
+                    return false; // word not found
+            }
+
+            int idx = CharToIndex(word[depth]);
+            if (idx < 0 || idx >= RWayTrieNode.R)
+                return false;
+
+            // Recursivley go to the next node
+            if (DeleteHelper(node.Children[idx], word, depth + 1))
+            {
+                // child became empty -> remove it 
+                node.Children[idx] = null;
+
+                // return true if this node isnnow emoty and not end of another word
+                return !node.IsEndOfWord && IsEmpty(node);
+            }
+
+            return false;
+        }
+
+        // Helper to check if a node has no children
+        private bool IsEmpty(RWayTrieNode node)
+        {
+            for (int i = 0; i < RWayTrieNode.R; i++)
+            {
+                if (node.Children[i] != null)
+                    return false;
+            }
+
+            return true;
+        }
     }
 }
