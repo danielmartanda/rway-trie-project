@@ -230,7 +230,7 @@ namespace RWayTrieProject
         {
             if (!File.Exists(filePath))
             {
-                throw new FileNotFoundException("Dictionary not found," filePath);
+                throw new FileNotFoundException("Dictionary not found,", filePath);
             }
 
             foreach (string line in File.ReadLines(filePath))
@@ -247,13 +247,13 @@ namespace RWayTrieProject
         // Delete + helpers from lab 3
         public bool Delete(String word)
         {
-            if (string.IsNullOrWhiteSpace)
+            if (string.IsNullOrWhiteSpace(word))
                 return false;
 
             return DeleteHelper(root, word.ToLower(), 0);
         }
 
-        private bool DeleteHelper(RWayTrie node, string word, int depth)
+        private bool DeleteHelper(RWayTrieNode node, string word, int depth)
         {
             if (node == null)
                 return false;
@@ -263,6 +263,9 @@ namespace RWayTrieProject
             {
                 if (!node.IsEndOfWord)
                     return false; // word not found
+
+                node.IsEndOfWord = false;
+                return IsEmpty(node); //true if this node has a no children
             }
 
             int idx = CharToIndex(word[depth]);
