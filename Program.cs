@@ -17,6 +17,7 @@ Authors:
 ================================================================
 */
 
-namespace rwayTrieProject {
-
+namespace RWayTrieProject
+{
+    
 }

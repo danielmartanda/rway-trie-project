@@ -17,6 +17,22 @@ Authors:
 ================================================================
 */
 
-namespace rwayTrieProject {
+namespace RWayTrieProject
+{
+    // Task 1: RWayTrieNode 
+    public class RWayTrieNode
+    {
+        // Alphabet size (a-z)
+        public int R = 26;
+        // Children will be in the array list as 0 = 'a' and then 25 will be z
+        public RWayTrieNode[] Children;
+        // True if this node marks the end of a word 
+        public bool IsEndOfWord;
 
+        public RWayTrieNode()
+        {
+            Children = new RWayTrieNode[R];
+            IsEndOfWord = false;
+        }
+    }
 }
