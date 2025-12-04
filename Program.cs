@@ -40,9 +40,53 @@ namespace RWayTrieProject
 
             Console.Clear();        //Clears the console for clean output
 
-            //Loads word from a text file
-            trie.BuildFromTextFile(@"../../../words.txt");
+            //------INSERT AND SEARCH TESTING------
+            //Inserting 3 valid words
+            Console.WriteLine("Running valid insertion/search tests");
 
+            Console.WriteLine("-> Inserting 'luffy', 'roronoa', 'lebron'");
+            trie.Insert("luffy");
+            trie.Insert("roronoa");
+            trie.Insert("lebron");
+
+            Console.WriteLine($"-> Searching for (\"luffy\"): {trie.Search("luffy")}");
+            Console.WriteLine($"-> Searching for (\"roronoa\"): {trie.Search("roronoa")}");
+            Console.WriteLine($"-> Searching for (\"lebron\"): {trie.Search("lebron")}");
+            Console.WriteLine();
+
+            //Inserting 3 invalid words
+            Console.WriteLine("Running invalid insertion/search tests");
+
+            Console.WriteLine("-> Inserting 'y2k', '21kid', '@gmail.com'");
+            trie.Insert("y2k");
+            trie.Insert("21kid");
+            trie.Insert("@gmail.com");
+
+            Console.WriteLine($"-> Searching for (\"y2k\"): {trie.Search("y2k")}");
+            Console.WriteLine($"-> Searching for (\"21kid\"): {trie.Search("21kid")}");
+            Console.WriteLine($"-> Searching for (\"@gmail.com\"): {trie.Search("@gmail.com")}");
+            Console.WriteLine();
+            //--------------------------------------
+
+            //------EMPTY TRIE TESTING------
+            Console.WriteLine("Running edge case tests");
+            Console.WriteLine($"-> Searching for (\"AppleDevice\") in empty trie: {trie.Search("AppleDevices")}");
+            Console.WriteLine();
+            //--------------------------------------
+
+            try
+            {
+                //Loads word from a text file
+                trie.BuildFromTextFile(@"../../../words.txt");
+            }
+            catch (FileNotFoundException ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine("Program cannot continue without the word text file. Press any key to exit.");
+                Console.ReadKey();
+                return;         //Exit from the main, do not enter the user input loop
+            }
+            
             //Loop to prompt user to search for prefixes
             while (true)
             {

@@ -322,6 +322,10 @@ namespace RWayTrieProject
 
         public void BuildFromTextFile(string filePath)
         {
+            //Reset counts as they are incremented through hard coded testing (luffy, roronoa and lebron)
+            validWordCount = 0;
+            invalidWordCount = 0;
+
             //Two checks done before attempting to open the file
             //Checks if the file path is null, empty or whitespace
             if (string.IsNullOrWhiteSpace(filePath))
@@ -333,8 +337,7 @@ namespace RWayTrieProject
             //Checks if the file actually exists
             if (!File.Exists(filePath))
             {
-                Console.WriteLine($"Error: File '{filePath}' not found.");
-                return;     //Doesn't attempt to open file
+                throw new FileNotFoundException($"Error: File '{filePath}' not found.", filePath);
             }
 
             try
