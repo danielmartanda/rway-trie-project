@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("rway-trie-project")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f041927f7c9cd2c3b80206d0479ae69b9a807090")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9980487fd6f4a911ab5b0ec1486009de32c1a12b")]
 [assembly: System.Reflection.AssemblyProductAttribute("rway-trie-project")]
 [assembly: System.Reflection.AssemblyTitleAttribute("rway-trie-project")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
