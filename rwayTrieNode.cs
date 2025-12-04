@@ -17,22 +17,39 @@ Authors:
 ================================================================
 */
 
+using System;
+
 namespace RWayTrieProject
 {
-    // Task 1: RWayTrieNode 
+    /* RWay Trie Node Class 
+        -> Represents a single node in the RWay Trie
+        -> Each node contains:
+            - An array of 26 child references (for characters a to z)
+            - A boolean flag IsEndOfWord to indicate if a complete word ends at this node 
+            - A character field storing the character associated with this node 
+        -> The root node does not represent a character, so it stores the null character '\0' as a placeholder.
+            This prevents the root from being included in any words during prefix or traversal operations. 
+    */
     public class RWayTrieNode
     {
-        // Alphabet size (a-z)
-        public const int R = 26;
-        // Children will be in the array list as 0 = 'a' and then 25 will be z
-        public RWayTrieNode[] Children;
-        // True if this node marks the end of a word 
-        public bool IsEndOfWord;
+        public RWayTrieNode[] Children;     //Array of 26 children nodes, where each child is an RWayTrieNode, indexed from 0-25 for letters a to z
+        public bool IsEndOfWord;            //A flag which indicates terminating characters, if true then it marks the end of a valid word
+        public char Value;                  //Character stored at this node ('\0' for the root)
 
+        //Default constructor for root node
         public RWayTrieNode()
         {
-            Children = new RWayTrieNode[R];
-            IsEndOfWord = false;
+            Children = new RWayTrieNode[26];    //This creates space for 26 possible children (a to z), with initial null state
+            IsEndOfWord = false;                //This initializes the boolean flag
+            Value = '\0';                       //This stores a placeholder null character for the root node
+        }
+
+        //Constructor for child nodes
+        public RWayTrieNode(char value)
+        {
+            Children = new RWayTrieNode[26];    //This creates space for 26 possible children (a to z), with initial null state
+            IsEndOfWord = false;                //This initializes the boolean flag
+            Value = value;                      //This stores the character for child node
         }
     }
 }
