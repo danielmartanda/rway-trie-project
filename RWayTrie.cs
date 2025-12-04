@@ -20,12 +20,14 @@ Authors:
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace RWayTrieProject
 {
     /* RWay Trie Class 
         -> Represents the R-way Trie data structure for lowercase a-z words
-        -> Provides efficient storage and quick search for strings and often used to implement auto-complete and predictive text input
+        -> Provides efficient storage and quick search for strings and is often used 
+            to implement auto-complete and predictive text input
         -> Responsible for:
             - Inserting words into the trie (Insert)
             - Searching for words in the trie (Search)
@@ -37,33 +39,31 @@ namespace RWayTrieProject
     {
         private RWayTrieNode root;          //Reference to the root node of the trie
 
+        private int invalidWordCount = 0;   //Tracks how many invalid words were skipped during loading
+        private int validWordCount = 0;     //Tracks how many valid words were skipped during loading
+
         //Constructor
         public RWayTrie()
         {
             root = new RWayTrieNode();      //Root node uses a null placeholder character and doesnt represent a real character
         }
 
-        /* Method 1: Insertion
+        /* Method 1: Insert
+            - Purpose: 
+                -> Inserts a lowercase word into the R-Way trie
             - Parameter:
-                -> string: The word to be inserted into the Trie
+                -> string word: The word to be inserted into the trie
             - Error Handling: 
                 -> Ignores null/whitespace input
-                -> Ignores words that contain characters not a-z, like numbers and special characters
-            
-            Pseudocode:
-                -> Start at the root
-                -> For each character in the word,
-                    1. Convert it to lowercase 
-                    2. Store in its respective numeric array index (0 to 25 corresponds to characters a to z)
-                    3. If the corresponding child is null, then it doesn't exist, so create a new node for that character
-                    4. Move down one level to the child node
-                -> After the last character, mark the node as the end of the word */
+                -> Silently skips words that contain characters not a-z, to avoid flooding the console
+                    Ex. Numbers and special characters    
+        */
         public void Insert(string word)
         {
             //Error handling for empty or invalid input
             if (string.IsNullOrWhiteSpace(word))
             {
-                Console.WriteLine($"Invalid word: Could not insert '{word}'");
+                //Blank lines are ignored
                 return;
             }
 
@@ -79,7 +79,8 @@ namespace RWayTrieProject
                 //Checks if the word contains only letters from a to z (which holds index locations 0 to 25)
                 if (index < 0 || index >= 26)
                 {
-                    Console.WriteLine($"Invalid word: Could not insert '{word}'");
+                    //Skips words containing characters not a-z and tracks how many invalid words were skipped
+                    invalidWordCount++;
                     return;
                 }
 
@@ -94,26 +95,23 @@ namespace RWayTrieProject
             }
 
             //Marks the last node as the end of the word
-            current.IsEndOfWord = true;     
+            current.IsEndOfWord = true;    
+            //Increases the valid word count
+            validWordCount++; 
         }
 
         /* Method 2: Search
+            - Purpose: 
+                -> Checks if a given word is stored as a complete word in the trie
             - Parameter:
-                -> string: The word to be searched inside the Trie
+                -> string word: The word to be searched inside the trie
             - Output:
-                -> true if it exists, false if otherwise
+                -> true if it exists and ends at a terminal node
+                -> false otherwise (including invalid or mixed character words)
             - Error Handling: 
                 -> Returns false for null/whitespace input
-                -> Returns false if the word contain characters not a-z, like numbers and special characters
-            
-            Pseudocode:
-                -> Start at the root
-                -> For each character in the word,
-                    1. Convert it to lowercase 
-                    2. Determine its respective numeric array index (0 to 25 corresponds to characters a to z)
-                    3. If the corresponding child is null, then the word doesn't exist, so return false
-                    4. Otherwise, move down one level to the child node
-                -> After the last character, return true if IsEndOfWord is true */
+                -> Returns false if the word contain characters not a-z            
+         */
         public bool Search(string word)
         {
             //Error handling for empty or invalid input
@@ -154,52 +152,226 @@ namespace RWayTrieProject
         }
 
         /* Method 3: PrefixMatch
-            - Returns a list of words in the trie that match a given prefix
+            - Purpose:
+                -> Returns all words in the trie that match a given prefix
+                -> Finds the node that represents the last character of the prefix
+                    using TraverseToNode, then performs a DFS from that node using
+                    DFSCollect to gather all full words that extend the prefix
             - Parameter:
-                -> string prefix: The prefix to be searched inside the Trie
+                -> string prefix: The prefix to be searched inside the trie
             - Output:
                 -> List<string> containing all valid words that match the prefix
             - Error Handling: 
                 -> Returns an empty list for null/whitespace input
-                -> Returns an empty list if the prefix contains characters not a-z, like numbers and special characters
-            
-            Pseudocode:
-                -> Start at the root
-                -> For each character in the prefix,
-                    1. Convert it to lowercase 
-                    2. Determine its respective numeric array index (0 to 25 corresponds to characters a to z)
-                    3. If the corresponding child is null, then the word doesn't exist, so return an empty list
-                    4. Otherwise, move down one level to the child node
-                -> Once the prefix node is reached, perform a DFS:
-                    1. Track the growing word using a StringBuilder or string path
-                    2. Each time a node with IsEndOfWord == true is visited, add the word to the result list
-                -> Return the list of matched words
+                -> Returns an empty list if the prefix contains characters not a-z, or if the prefix path does not exist 
         */
 
+        public List<string> PrefixMatch(string prefix)
+        {
+            //Creates a list to store all matching words
+            List<string> results = new List<string>();
+
+            //Error handling for null or whitespace prefixes
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                return results;         //Returns an empty list
+            }
+
+            //Trims and normalizes the prefix to lowercase characters
+            prefix = prefix.Trim().ToLower();
+
+            //Traverses the trie to find the node representing the final character of the prefix
+            RWayTrieNode prefixNode = TraverseToNode(prefix);
+
+            //If the path for the prefix does not exist, there are no matching words
+            if (prefixNode == null)
+            {
+                return results;
+            }
+
+            //Uses a StringBuilder to build words as we traverse the trie
+            StringBuilder currentWord = new StringBuilder(prefix);
+
+            //If the prefix is a complete word, add it to the results
+            if (prefixNode.IsEndOfWord)
+            {
+                results.Add(prefix);
+            }
+
+            //Performs a depth-first search (DFS) from the prefix node to find all longer words
+            DFSCollect(prefixNode, currentWord, results);
+
+            //Returns the completed list of words that match the prefix
+            return results;
+        }
+
+        /* Method 4: TraverseToNode (Helper)
+            - Purpose:
+                -> Traverses the trie, following a word or prefix from the root and returns the node reached
+            - Parameter:
+                -> string text: A word or prefix to follow from the root
+            - Output:
+                -> The RWayTrieNode corresponding to the last character in the string
+                -> Null if the path does not exist or contains invalid characters
+        */
+
+        private RWayTrieNode TraverseToNode(string text)
+        {
+            RWayTrieNode current = root;        //Starts the traversal from the root
+
+            //Error handling for empty strings
+            if (string.IsNullOrEmpty(text))
+            {
+                return current;     //Returns the root node
+            }
+
+            //Trims and normalizes the string to lowercase 
+            text = text.Trim().ToLower();
+
+            //Iterates over every character in the string
+            foreach (char character in text)
+            {
+                //Maps the characters a to z to index 0 to 25 by subtracting the ASCII values of the characters
+                int index = character - 'a';
+
+                //Checks if the word contains only letters from a to z (which holds index locations 0 to 25)
+                if (index < 0 || index >= 26)
+                {
+                    return null;        //Invalid characters, path does not exist
+                }
+
+                //Checks if there is an existing child node for the letter 
+                if (current.Children[index] == null)            
+                {
+                    return null;        //No child exists at this index, so path doesn't exist
+                }
+
+                //Moves a level deeper in the trie for the following letters in the word
+                current = current.Children[index];
+
+            }
+
+            //Returns the node reached at the end of the string
+            return current;
+        }
+
+        /* Method 5: DFSCollect (Helper)
+            - Purpose:
+                -> Performs a depth-first search (DFS) from the given node 
+                    to collect all complete words in its subtree. Uses backtracking on 
+                    currentWord so that each recursive call sees the correct prefix. 
+            - Parameters:
+                -> RWayTrieNode node: The current node in the trie
+                -> StringBuilder currentWord: Holds the prefix plus the path built
+                -> List<string> results: A list where all complete words will be stored
+        */
+        private void DFSCollect(RWayTrieNode node, StringBuilder currentWord, List<string> results)
+        {
+            //Iterates over all possible children
+            for (int i = 0; i < 26; i++)
+            {
+                RWayTrieNode child = node.Children[i];
+
+                //If there is no child node, skip this index
+                if (child == null)
+                {
+                    continue;
+                }
+
+                //Determines the character represented by this child based on its index
+                char character = (char)('a' + i);   //Need to explain this
+
+                //Appends the character to the current word path
+                currentWord.Append(character);
+
+                //If the child node represents the end of a valid word, add it to the results list
+                if (child.IsEndOfWord)
+                {
+                    results.Add(currentWord.ToString());
+                }
+
+                //Recursively explores deeper levels of the trie
+                DFSCollect(child, currentWord, results);
+
+                //Removes the last character before moving the next child
+                currentWord.Length--;
+            }
+
+        }
 
 
-
-
-
-        /* Method 4: BuildFromTextFile
-            - Builds the trie using all words found inside a given text file
+        /* Method 6: BuildFromTextFile
+            - Purpose:
+                -> Populates the trie with all valid words found inside a given text file
+                -> Uses a StreamReader to read the file line by line
+                    - Trimming each line and inserting non-empty words into the trie
+                -> Displays the count of valid and invalid words entered to show the size of the trie
             - Parameter:
                 -> string filePath: The path to the text file containing one word per line
             - Output:
                 -> No return value (void), but the trie will be filled with all valid words
             - Error Handling: 
-                -> If the file cannot be opened, display an error message
-                -> Ignores blank lines or lines containing invalid characters
-            
-            Pseudocode:
-                -> Attempt to open the file
-                -> While not at the end of the file:
-                    1. Read a line
-                    2. Trim the string and ensure it is not empty
-                    3. Call Insert(word) to store it in the trie
-                -> Close the file
+                -> If the file path is null, empty or whitespace, displays an error message and doesnt open file
+                -> If the file does not exist, displays an error message
+                -> Ignores blank lines; invalid characters are handled inside Insert
+
+            - Reference:
+                -> Documentation for StreamReader used in this method:
+                    https://learn.microsoft.com/en-us/dotnet/api/system.io.streamreader?view=net-10.0
         */
 
+        public void BuildFromTextFile(string filePath)
+        {
+            //Two checks done before attempting to open the file
+            //Checks if the file path is null, empty or whitespace
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                Console.WriteLine("Error: File path is empty.");
+                return;     //Doesn't attempt to open file
+            }
+
+            //Checks if the file actually exists
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"Error: File '{filePath}' not found.");
+                return;     //Doesn't attempt to open file
+            }
+
+            try
+            {
+                //Opens the file for reading inside a using block to ensure it is closed
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    string? line;       //Nullable reference variable as ReadLine() returns null at end of the file
+
+                    //Reads the file line by line until the end is reached
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        //Removes leading and trailing whitespace from the line
+                        string word = line.Trim();
+
+                        //Ignores empty or whitespace lines
+                        if (string.IsNullOrWhiteSpace(word))
+                        {
+                            continue;
+                        }
+
+                        //Inserts the word into the trie (validation is handled inside method)
+                        Insert(word);
+                    }
+                }
+                Console.WriteLine($"Successfully built trie from '{filePath}'.");
+                Console.WriteLine($"Inserted {validWordCount} valid words");
+                Console.WriteLine($"Skipped {invalidWordCount} invalid words");
+            }
+            catch (Exception ex)
+            {
+                //Displays a helpful error message if something goes wrong while reading
+                Console.WriteLine($"Error while reading file '{filePath}': {ex.Message}");
+
+            }
+
+        }
 
 
     }

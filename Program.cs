@@ -41,11 +41,12 @@ namespace RWayTrieProject
             Console.Clear();        //Clears the console for clean output
 
             //Loads word from a text file
-            trie.BuildFromTextFile("words.text");
+            trie.BuildFromTextFile(@"../../../words.txt");
 
             //Loop to prompt user to search for prefixes
             while (true)
             {
+                Console.WriteLine();
                 Console.Write("\nEnter a prefix (or type 'exit' to quit): ");
                 string prefix = Console.ReadLine();         //Stores the entered prefix
 
@@ -63,7 +64,7 @@ namespace RWayTrieProject
                 //Iterates through all matching words and prints them
                 foreach (string word in results)
                 {
-                    Console.WriteLine($" -> {word}");
+                    Console.Write($" - {word}");
                 }
 
                 //If no words were found, display message to user
@@ -79,6 +80,5 @@ namespace RWayTrieProject
 
         }
     }
-
 
 }
